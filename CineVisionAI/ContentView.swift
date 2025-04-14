@@ -16,14 +16,12 @@ struct ContentView: View {
         NavigationView{
             VStack(spacing: 20) {
                 VStack(spacing: 10) {
-                    Image(systemName: "cloud.fill")
+                    Image( "Movıe")
                         .resizable()
-                        .frame(width: 60, height: 50)
+                        .frame(width: 150, height: 150)
                         .foregroundColor(.gray)
                     
-                    Text("Company Name")
-                        .foregroundColor(.gray)
-                        .font(.title3)
+               
                 }
                 .padding(.bottom, 40)
                 
@@ -83,16 +81,15 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 20)
                 
-                Button(action: {
-                    // Handle sign in action
-                }) {
-                    Text("Sign in")
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.cyan)
-                        .cornerRadius(5)
-                }
+                NavigationLink(destination: WelcomeView()) { // NavigationLink ile WelcomeView'a geçiş sağlıyoruz
+                                    Text("Sign in")
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color.cyan)
+                                        .cornerRadius(5)
+                                }
+
                 Spacer()
                 HStack {
                     Button(action: {

@@ -17,14 +17,11 @@ struct SignUpView: View {
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 10) {
-                Image(systemName: "cloud.fill")
+                Image("Movıe")
                     .resizable()
-                    .frame(width: 60, height: 50)
+                    .frame(width: 150, height: 150)
                     .foregroundColor(.gray)
-                
-                Text("Company Name")
-                    .foregroundColor(.gray)
-                    .font(.title3)
+       
             }
             .padding(.bottom, 40)
             

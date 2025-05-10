@@ -25,6 +25,7 @@ struct SignUpView: View {
             }
             .padding(.bottom, 40)
             
+            
             VStack(alignment: .leading, spacing: 10) {
                 Text("Sign Up")
                     .foregroundColor(.cyan)

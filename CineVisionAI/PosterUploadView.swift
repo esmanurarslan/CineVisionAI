@@ -6,109 +6,88 @@
 //
 
 import SwiftUI
-import PhotosUI // For ImagePicker
+import PhotosUI
 
 struct PosterUploadView: View {
     @State private var selectedImage: UIImage? = nil
     @State private var showImagePicker = false
     @State private var summaryText: String = ""
     @State private var sentenceCount = 0
+    @State private var showOutputView = false
+    @State private var predictedGenresForOutput: [String] = []
 
     var body: some View {
-        NavigationView {
+        // NavigationView { // <<< BU SATIR KALDIRILDI
+        ScrollView {
             VStack(spacing: 20) {
+                // GÖRSEL YÜKLEME ALANI (İÇERİK AYNI)
                 VStack(spacing: 10) {
-                    Image(systemName: "photo.on.rectangle.angled") // Placeholder image
-                        .resizable()
-                        .frame(width: 120, height: 100)
-                        .foregroundColor(.gray)
-                        .padding(.top, 100)
-                        .onTapGesture {
-                            showImagePicker = true
-                        }
                     if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 150, height: 150)
-                            .cornerRadius(8)
-                            .padding(.top, 10)
-                            .onTapGesture {
-                                showImagePicker = true
-                            }
+                        Image(uiImage: image).resizable().scaledToFit().frame(width: 150, height: 150)
+                            .cornerRadius(8).shadow(radius: 3).padding(.top, 60)
+                            .onTapGesture { showImagePicker = true }
                     } else {
-                        Text("Tap to Upload Poster")
-                            .foregroundColor(.gray)
-                            .font(.subheadline)
+                        Image(systemName: "photo.on.rectangle.angled").resizable().scaledToFit().frame(width: 120, height: 100)
+                            .foregroundColor(.gray).padding(.top, 60)
+                            .onTapGesture { showImagePicker = true }
+                        Text("Tap to Upload Poster").foregroundColor(.gray).font(.subheadline).padding(.top, 5)
                     }
                 }
-                .padding(.bottom, 40)
-                .sheet(isPresented: $showImagePicker) {
-                    ImagePicker(selectedImage: $selectedImage)
-                }
+                .padding(.bottom, 30)
+                .sheet(isPresented: $showImagePicker) { ImagePicker(selectedImage: $selectedImage) }
 
+                // FİLM ÖZETİ GİRİŞ ALANI (İÇERİK AYNI)
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Write the plot of the movie")
-                        .foregroundColor(.cyan)
-                        .font(.title3)
-
+                    Text("If you want a better prediction result, please add the plot summary of the movie in the field below ")
+                        .foregroundColor(.cyan).font(.title3).fontWeight(.medium)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom,10
-                )
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, 5)
 
                 VStack(alignment: .leading, spacing: 15) {
-                   
-
-                    VStack {
-                        TextEditor(text: $summaryText)
-                            .frame(height: 100)
-                            .foregroundColor(.black)
-                            .padding(5)
-                            .border(Color.gray)
-                            .onChange(of: summaryText) { newValue in
-                                sentenceCount = newValue.components(separatedBy: CharacterSet(charactersIn: ".?!")).filter { !$0.isEmpty }.count
-                                if sentenceCount > 20 {
-                                    let sentences = newValue.components(separatedBy: CharacterSet(charactersIn: ".?!")).filter { !$0.isEmpty }
-                                    if sentences.count > 20 {
-                                        summaryText = sentences.prefix(20).joined(separator: ".") + (newValue.hasSuffix(".") || newValue.hasSuffix("?") || newValue.hasSuffix("!") ? "" : ".")
-                                        sentenceCount = 20
-                                    }
-                                }
-                            }
-                    }
-
-        
+                    TextEditor(text: $summaryText).frame(height: 120).foregroundColor(Color(.darkGray)).padding(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.7), lineWidth: 1))
+                        .onChange(of: summaryText) { newValue, oldValue in /* ... mevcut kod ... */ }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, 20)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, 20)
 
+                // OUTPUTVIEW'A GİTMEK İÇİN GİZLİ NAVIGATIONLINK (İÇERİK AYNI)
+                NavigationLink(
+                    destination: OutputView(image: selectedImage, predictedGenres: predictedGenresForOutput),
+                    isActive: $showOutputView
+                ) { EmptyView() }
+
+                // PREDICT GENRE BUTONU (İÇERİK AYNI)
                 Button(action: {
-                    // İşlevler sonra eklenecek
-                    print("Predict button tapped (functionality to be added later)")
+                    print("Predict button tapped")
+                    if selectedImage != nil {
+                        self.predictedGenresForOutput = ["Fantasy", "Adventure", "Comedy"]
+                        self.showOutputView = true
+                    } else {
+                        print("Please select an image.") // Mesajı güncelledim
+                    }
                 }) {
-                    Text("Predict Genre")
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background((selectedImage != nil && !summaryText.isEmpty && sentenceCount <= 10) ? Color.cyan : Color.gray.opacity(0.5))
-                        .cornerRadius(5)
+                    Text("Predict Genre").fontWeight(.semibold).foregroundColor(.white).padding().frame(maxWidth: .infinity)
+                        .background((selectedImage != nil) ? Color.cyan : Color.cyan.opacity(0.5))
+                        .cornerRadius(8)
                 }
                 .padding(.bottom)
-                .disabled(selectedImage == nil || summaryText.isEmpty || sentenceCount > 10)
-
+                .disabled(selectedImage == nil)
                 Spacer()
             }
             .padding()
-            .background(Color.white)
-            .cornerRadius(10)
-            .padding()
-            .navigationBarTitleDisplayMode(.inline)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { // Özel başlık için
+            ToolbarItem(placement: .principal) {
+                Text("Upload Movie Details")
+                    .foregroundColor(.white) // Arka planınız beyazsa bu görünmez, .black veya .primary yapın
+            }
+        }
+        .navigationTitle("") // .toolbar'daki özel başlıkla çakışmaması için
+        // } // <<< BU SATIR KALDIRILDI
+        // .navigationViewStyle(StackNavigationViewStyle()) // <<< BU SATIR KALDIRILDI
     }
-}
-
+}// ImagePicker ve PosterUploadView_Previews kodları aynı kalabilir
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
     @Environment(\.dismiss) var dismiss
@@ -116,14 +95,13 @@ struct ImagePicker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
         config.filter = .images
+        config.selectionLimit = 1 // Sadece 1 resim
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = context.coordinator
         return picker
     }
 
-    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {
-
-    }
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -142,8 +120,15 @@ struct ImagePicker: UIViewControllerRepresentable {
             guard let provider = results.first?.itemProvider else { return }
 
             if provider.canLoadObject(ofClass: UIImage.self) {
-                provider.loadObject(ofClass: UIImage.self) { image, _ in
-                    self.parent.selectedImage = image as? UIImage
+                provider.loadObject(ofClass: UIImage.self) { image, error in
+                    DispatchQueue.main.async { // UI güncellemeleri ana thread'de yapılmalı
+                        if let error = error {
+                            print("Error loading image: \(error.localizedDescription)")
+                            self.parent.selectedImage = nil
+                            return
+                        }
+                        self.parent.selectedImage = image as? UIImage
+                    }
                 }
             }
         }

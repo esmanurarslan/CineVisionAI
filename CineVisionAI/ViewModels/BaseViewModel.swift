@@ -16,5 +16,12 @@ class BaseViewModel: ObservableObject {
     func showToast(_ message: String) {
             self.toastMessage = message
             self.isShowingToast = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    // Sadece mevcut toast mesajı hala gösteriliyorsa gizle
+                    if self.toastMessage == message {
+                        self.isShowingToast = false
+                    }
+                }
         }
 }

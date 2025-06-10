@@ -1,63 +1,105 @@
-//
-//  WelcomeView.swift
-//  CineVisionAI
-//
-//  Created by Esma Nur Arslan on 14.04.2025.
-//
 
 import SwiftUI
 
 struct WelcomeView: View {
     var body: some View {
-        // NavigationView { // <<< BU SATIR KALDIRILDI
-        VStack(spacing: 20) {
-            Image("Movıe")
-                .resizable()
-                .frame(width: 150, height: 150)
-                .foregroundColor(.cyan)
-                .padding(.bottom, 30)
+        ZStack {
+            // Arka planı gradient yapalım ki Sign In sayfasıyla uyumlu olsun
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color(hex: "#1B1525"), location: 0.0),
+                    .init(color: Color(hex: "#1B1525"), location: 0.8),
+                    .init(color: Color("myPurple"), location: 1.0)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Welcome to CineVisionAI!")
-                    .foregroundColor(.cyan)
-                    .font(.largeTitle)
-                    .padding(.bottom, 10)
-                Text("What do you see when you look at a poster?\nColors, faces, maybe a clue...\nBut what if we told you it could reveal the genre of a film?\nJust give us a poster and a brief summary, and let us do the rest.\nLet’s discover which genre your next movie belongs to!")
-                    .font(.callout)
-                    .foregroundColor(.gray)
-                    .padding(.horizontal)
-                    .padding(.bottom, 40)
+            // Beyaz çizgili köşe çerçevesi
+            CornerOverlay()
+                .stroke(Color.white, lineWidth: 8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.vertical, 90)
+                .padding(.horizontal, 40)
+                .shadow(color: Color("myYellow").opacity(0.7), radius: 8)
+
+            VStack(spacing: 24) {
+                Spacer()
+
+                Image("icon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 180, height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .shadow(color: Color("myYellow").opacity(0.5), radius: 8, x: 0, y: 4)
+
+                VStack(spacing: 10) {
+                    Text("Welcome to CineVisionAI")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(Color("myYellow"))
+
+                    Text("Upload a poster and a short summary.\nWe’ll help you discover the genre behind it.")
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                }
+
+                NavigationLink(destination: PosterUploadView()) {
+                    Text("Get Started")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color("myYellow"))
+                        )
+                        .foregroundColor(Color("myPurple"))
+                        .padding(.horizontal, 32)
+                        .shadow(color: Color("myYellow").opacity(0.5), radius: 5, x: 0, y: 3)
+                }
+
+                Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.bottom, 20) // Bu padding zaten vardı, dokunmadım
-
-            NavigationLink(destination: PosterUploadView()) {
-                Text("Upload a Poster")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.cyan)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
-
-            Spacer()
+            .padding()
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.white)
-        .navigationTitle("Welcome") // <<< İsteğe bağlı: Navigasyon başlığı eklendi
-        .navigationBarTitleDisplayMode(.inline) // Başlığın stilini ayarlar
-        // .navigationBarHidden(true) // <<< Genellikle bir sonraki view'a geçişte bar görünür olur.
-                                    // İsterseniz aktif edebilirsiniz ama geri butonu da gizlenir.
-        // } // <<< BU SATIR KALDIRILDI
-        // .navigationViewStyle(StackNavigationViewStyle()) // <<< BU SATIR KALDIRILDI
+        .navigationBarHidden(true)
     }
 }
 
+
+
+struct CornerOverlay: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let length: CGFloat = 30
+
+        // Sol üst
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY + length))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX + length, y: rect.minY))
+
+        // Sağ üst
+        path.move(to: CGPoint(x: rect.maxX - length, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + length))
+
+        // Sağ alt
+        path.move(to: CGPoint(x: rect.maxX, y: rect.maxY - length))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX - length, y: rect.maxY))
+
+        // Sol alt
+        path.move(to: CGPoint(x: rect.minX + length, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - length))
+
+        return path
+    }
+}
 struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
-        // Preview için hala bir NavigationView'a ihtiyacımız var
         NavigationView {
             WelcomeView()
         }

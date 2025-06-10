@@ -1,130 +1,138 @@
-// OutputView.swift
-// CineVisionAI
-//
-
 import SwiftUI
 
 struct OutputView: View {
     let image: UIImage?
     let predictedGenres: [String]
-    let allProbabilities: [GenreProbabilityAPI] // Bu parametre zaten doğru tanımlanmış
-    
-    @Environment(\.dismiss) var dismiss // Geri butonu için (eğer navigationBarBackButtonHidden(true) ise)
-    @EnvironmentObject var rootViewManager: RootViewManager // Kök görünüme dönmek için
+    let allProbabilities: [GenreProbabilityAPI]
+
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var rootViewManager: RootViewManager
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 25) {
-                // GÖRÜNTÜ ALANI
-                if let uiImage = image {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: 300) // Max yükseklik ayarı
-                        .cornerRadius(12)
-                        .shadow(radius: 5)
-                        .padding(.horizontal)
-                        .padding(.top, 20) // Biraz üst boşluk
-                } else {
-                    Image(systemName: "photo.on.rectangle.angled")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150, height: 150) // Biraz daha belirgin
-                        .foregroundColor(.gray.opacity(0.5))
-                        .padding(.vertical, 50)
-                    Text("No image was provided.")
-                        .foregroundColor(.gray)
-                        .font(.headline)
-                }
-                
-                // TAHMİN EDİLEN TÜRLER
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Predicted Movie Genres:")
-                        .font(.title2.bold()) // Biraz daha vurgulu
-                        .foregroundColor(Color.cyan) // Renk tema ile uyumlu
-                        .padding(.bottom, 5)
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color(hex: "#1B1525"), location: 0.0),
+                    .init(color: Color(hex: "#1B1525"), location: 0.4),
+                    .init(color: Color("myPurple"), location: 1.0)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-                    if predictedGenres.isEmpty {
-                        Text("No genres predicted.") // Daha kısa mesaj
-                            .font(.headline)
-                            .foregroundColor(.gray)
+            
+                VStack(spacing: 25) {
+                    // Görsel Alanı
+                    if let uiImage = image {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity, maxHeight: 300)
+                            .cornerRadius(12)
+                            .shadow(radius: 6)
+                            .padding(.horizontal)
+                            .padding(.top, 20)
                     } else {
-                        // Türleri yan yana göstermek için FlowLayout (eğer tanımlıysa)
-                        // Eğer FlowLayout yoksa, ForEach'i direkt VStack içinde kullanın
-                        FlowLayout(alignment: .leading, spacing: 8) { // FlowLayout tanımınızın olması gerekir
-                             ForEach(predictedGenres, id: \.self) { genre in
-                                 Text(genre)
-                                     .font(.callout.weight(.medium))
-                                     .padding(.horizontal, 12)
-                                     .padding(.vertical, 6)
-                                     .background(Color.cyan.opacity(0.15))
-                                     .clipShape(Capsule()) // Daha hoş görünüm
-                             }
-                         }
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 150, height: 150)
+                            .foregroundColor(.white.opacity(0.4))
+                            .padding(.vertical, 50)
+                        Text("No image was provided.")
+                            .foregroundColor(.white.opacity(0.6))
+                            .font(.headline)
                     }
-                }
-                .padding(.horizontal)
 
-                // TÜM OLASILIKLAR (Eğer varsa ve gösterilmek isteniyorsa)
-                if !allProbabilities.isEmpty {
-                    Divider().padding(.vertical, 15)
-                    Text("All Genre Probabilities:")
-                        .font(.title3.weight(.semibold))
-                        .foregroundColor(Color.cyan.opacity(0.8))
-                        .padding(.bottom, 5)
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        // Olasılıkları yüksekten düşüğe sırala
-                        ForEach(allProbabilities.sorted { $0.probability > $1.probability }) { item in
-                            // Sadece belirli bir eşiğin üzerindekileri göster (opsiyonel)
-                            if item.probability > 0.005 { // %0.5'ten yüksekleri gösterelim
-                                HStack {
-                                    Text(item.genre)
-                                        .font(.subheadline)
-                                        .frame(width: 140, alignment: .leading) // Sabit genişlik
-                                    
-                                    ProgressView(value: item.probability, total: 1.0)
-                                        .frame(height: 8)
-                                        .accentColor(colorForProbability(item.probability))
-                                        .cornerRadius(4)
-                                    
-                                    Text(String(format: "%.1f%%", item.probability * 100))
-                                        .font(.caption.monospacedDigit()) // Rakamların aynı genişlikte olması için
-                                        .frame(width: 55, alignment: .trailing)
-                                }
-                            }
+                    // Tahmin Edilen Türler
+                    // Predicted Movie Genres:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Predicted Movie Genres:")
+                            .font(.title2.bold())
+                            .foregroundColor(Color("myYellow"))
+
+                        if predictedGenres.isEmpty {
+                            Text("No genres predicted.")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.6))
+                        } else {
+                            GenreWrapView(genres: predictedGenres)
                         }
                     }
                     .padding(.horizontal)
+
+                    ScrollView {
+                    // Olasılıklar
+                    if !allProbabilities.isEmpty {
+                        Divider().background(Color.white.opacity(0.2))
+                            .padding(.vertical, 10)
+
+                        Text("All Genre Probabilities:")
+                            .font(.title2.bold())
+                            .foregroundColor(Color("myYellow"))
+                            .padding(.bottom, 5)
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(allProbabilities.sorted { $0.probability > $1.probability }) { item in
+                                if item.probability > 0.005 {
+                                    HStack {
+                                        Text(item.genre)
+                                            .font(.subheadline)
+                                            .foregroundColor(.white)
+                                            .frame(width: 140, alignment: .leading)
+
+                                        ProgressView(value: item.probability, total: 1.0)
+                                            .frame(height: 8)
+                                            .tint(colorForProbability(item.probability))
+                                            .background(Color.white.opacity(0.08))
+                                            .cornerRadius(4)
+
+                                        Text(String(format: "%.1f%%", item.probability * 100))
+                                            .font(.caption.monospacedDigit())
+                                            .foregroundColor(.white)
+                                            .frame(width: 55, alignment: .trailing)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    Spacer(minLength: 50)
                 }
-                Spacer() // İçeriği yukarı iter
+                .padding(.vertical)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical) // Genel dikey padding
         }
-        .navigationTitle("Prediction Results") // Başlık
+        //.navigationTitle("Prediction Results")
+        
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(false) // Geri butonu görünsün
+        .navigationBarBackButtonHidden(false)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Prediction Results")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     rootViewManager.resetToRoot()
                 } label: {
-                    Image(systemName: "house.fill") // Daha uygun bir "ana sayfa" ikonu
+                    Image(systemName: "house.fill")
+                        .foregroundColor(Color("myYellow"))
                 }
-                .foregroundColor(.cyan)
             }
         }
     }
-    
-    // Olasılığa göre renk döndüren yardımcı fonksiyon
+
     func colorForProbability(_ probability: Float) -> Color {
         if probability > 0.75 { return .green }
         else if probability > 0.50 { return .yellow }
         else if probability > 0.25 { return .orange }
-        else { return .red.opacity(0.8) }
+        else { return .red.opacity(0.7) }
     }
 }
+
 
 struct OutputView_Previews: PreviewProvider {
     static var previews: some View {
@@ -160,46 +168,107 @@ struct GenreProbabilityAPI: Decodable, Identifiable { // APIDataModels.swift'ten
 }
 */
 
+struct GenreWrapView: View {
+    let genres: [String]
+    let columns = [GridItem(.adaptive(minimum: 92), spacing: 10)]
+
+        var body: some View {
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+                ForEach(genres, id: \.self) { genre in
+                    Text(genre)
+                        .font(.callout.weight(.medium))
+                        .foregroundColor(.black.opacity(1)) // Sarı arka plana karşı siyah daha okunaklı olabilir
+                    
+                        // --- ÇÖZÜM BURADA ---
+                        .frame(width: 100, height: 25) // 1. Her kapsüle sabit bir genişlik ve yükseklik veriyoruz.
+                        // --- BİTTİ ---
+                    
+                        .background(Color("myYellow").opacity(0.9))
+                        .clipShape(Capsule())
+                        // Uzun metinlerin "..." ile kısaltılmasını önlemek için satır limitini kaldırabilir
+                        // veya metnin küçülerek sığmasını sağlayabilirsiniz. Şimdilik böyle kalsın.
+                }
+            }
+        }
+}
+
+
+
 // Eğer FlowLayout'u ayrı bir dosyada tanımlamadıysanız, buraya ekleyebilirsiniz:
 struct FlowLayout<Content: View>: View {
-    let content: () -> Content
-    let alignment: HorizontalAlignment
+    let items: [AnyHashable]
+    let viewForItem: (AnyHashable) -> Content
     let spacing: CGFloat
 
-    init(alignment: HorizontalAlignment = .leading, spacing: CGFloat = 8, @ViewBuilder content: @escaping () -> Content) {
-        self.content = content
-        self.alignment = alignment
+    init<Data: Hashable>(
+        items: [Data],
+        spacing: CGFloat = 8,
+        @ViewBuilder viewForItem: @escaping (Data) -> Content
+    ) {
+        self.items = items
         self.spacing = spacing
+        self.viewForItem = { any in viewForItem(any as! Data) }
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            self.generateContent(in: geometry)
-        }
+        FlowLayoutContent(
+            items: items,
+            spacing: spacing,
+            viewForItem: viewForItem
+        )
     }
 
-    private func generateContent(in g: GeometryProxy) -> some View {
-        var width = CGFloat.zero
-        var height = CGFloat.zero
-        return ZStack(alignment: Alignment(horizontal: alignment, vertical: .top)) {
-            self.content()
-                .padding(EdgeInsets(top: spacing / 2, leading: spacing / 2, bottom: spacing / 2, trailing: spacing / 2))
-                .alignmentGuide(alignment, computeValue: { d in
-                    if (abs(width - d.width) > g.size.width) {
-                        width = 0
-                        height -= d.height + spacing
-                    }
-                    let result = width
-                    if d.width > 0 {
-                        width -= d.width + spacing
-                    }
-                    return result
-                })
-                .alignmentGuide(.top, computeValue: { d in
-                    let result = height
-                    if d.height > 0 && width == 0 { /* New row, do nothing special with height */ }
-                    return result
-                })
+    private struct FlowLayoutContent: View {
+        let items: [AnyHashable]
+        let spacing: CGFloat
+        let viewForItem: (AnyHashable) -> AnyView
+
+        init(items: [AnyHashable], spacing: CGFloat, viewForItem: @escaping (AnyHashable) -> some View) {
+            self.items = items
+            self.spacing = spacing
+            self.viewForItem = { AnyView(viewForItem($0)) }
+        }
+
+        @State private var totalHeight = CGFloat.zero
+
+        var body: some View {
+            GeometryReader { geometry in
+                self.generateContent(in: geometry)
+            }
+            .frame(height: totalHeight)
+        }
+
+        private func generateContent(in geometry: GeometryProxy) -> some View {
+            var width = CGFloat.zero
+            var height = CGFloat.zero
+
+            return ZStack(alignment: .topLeading) {
+                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                    viewForItem(item)
+                        .padding(.horizontal, spacing / 2)
+                        .padding(.vertical, spacing / 2)
+                        .alignmentGuide(.leading) { d in
+                            if width + d.width > geometry.size.width {
+                                width = 0
+                                height += d.height + spacing
+                            }
+                            let result = width
+                            width += d.width + spacing
+                            return result
+                        }
+                        .alignmentGuide(.top) { _ in height }
+                }
+            }
+            .background(viewHeightReader($totalHeight))
+        }
+
+        private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
+            GeometryReader { geometry -> Color in
+                DispatchQueue.main.async {
+                    binding.wrappedValue = geometry.size.height
+                }
+                return .clear
+            }
         }
     }
 }

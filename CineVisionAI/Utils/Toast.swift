@@ -20,7 +20,7 @@ struct Toast: ViewModifier {
     }
 
     private var backgroundColor: Color {
-        isSuccess ?  Color(hex: "#00DE71") : Color(hex: "#E54B38")
+        isSuccess ?  Color(.myYellow) : Color(.myPurple)
     }
     
     
@@ -39,9 +39,13 @@ struct Toast: ViewModifier {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 28, height: 28)
+                        .foregroundColor(config.textColor)
+                        .shadow(color: Color("myYellow").opacity(1), radius: 10)
+
                     Text(message)
                         .multilineTextAlignment(.leading)
                         .foregroundColor(config.textColor)
+                        .shadow(color: Color("myYellow").opacity(1), radius: 10)
                 }
                 .padding(.horizontal)
                 .frame(height: frame)

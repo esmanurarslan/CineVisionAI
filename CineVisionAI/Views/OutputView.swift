@@ -7,6 +7,7 @@ struct OutputView: View {
 
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var rootViewManager: RootViewManager
+    @EnvironmentObject var authVM: AuthViewModel
 
     var body: some View {
         ZStack {
@@ -23,7 +24,6 @@ struct OutputView: View {
 
             
                 VStack(spacing: 25) {
-                    // Görsel Alanı
                     if let uiImage = image {
                         Image(uiImage: uiImage)
                             .resizable()
@@ -62,7 +62,6 @@ struct OutputView: View {
                     }
                     .padding(.horizontal)
 
-                    ScrollView {
                     // Olasılıklar
                     if !allProbabilities.isEmpty {
                         Divider().background(Color.white.opacity(0.2))
@@ -72,7 +71,8 @@ struct OutputView: View {
                             .font(.title2.bold())
                             .foregroundColor(Color("myYellow"))
                             .padding(.bottom, 5)
-
+                        
+                        ScrollView {
                         VStack(alignment: .leading, spacing: 6) {
                             ForEach(allProbabilities.sorted { $0.probability > $1.probability }) { item in
                                 if item.probability > 0.005 {
@@ -95,12 +95,12 @@ struct OutputView: View {
                                     }
                                 }
                             }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
+                        Spacer(minLength: 50)
                     }
-                    Spacer(minLength: 50)
+                        .padding(.vertical)
                 }
-                .padding(.vertical)
             }
         }
         //.navigationTitle("Prediction Results")
@@ -112,15 +112,8 @@ struct OutputView: View {
                 Text("Prediction Results")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
+                    .shadow(color: Color("myYellow").opacity(1), radius: 10)
 
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    rootViewManager.resetToRoot()
-                } label: {
-                    Image(systemName: "house.fill")
-                        .foregroundColor(Color("myYellow"))
-                }
             }
         }
     }

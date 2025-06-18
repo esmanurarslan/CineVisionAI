@@ -20,13 +20,24 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct CineVisionAIApp: App { // Uygulamanızın struct adını kullanın
     @StateObject var rootViewManager = RootViewManager()
+    @StateObject var authViewModel = AuthViewModel()
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
+    init() {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithTransparentBackground()
+            appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+            appearance.buttonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white]
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        }
     
     var body: some Scene {
         WindowGroup {
             ContentView() // Bu zaten ana NavigationView'ı içeriyor
                 .environmentObject(rootViewManager) // ObservableObject'i environment'a ekle
                 .id(rootViewManager.rootViewId)      // ID'yi buraya bağla
+                .environmentObject(authViewModel)
         }
     }
 }

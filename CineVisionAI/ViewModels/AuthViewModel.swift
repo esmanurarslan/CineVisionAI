@@ -17,23 +17,23 @@ class AuthViewModel: BaseViewModel {
 
     func register(completion: @escaping (Bool) -> Void) {
         guard !email.isEmpty, !password.isEmpty, password == confirmPassword else {
-            showToast("Tüm alanları doldurun ve şifreler eşleşsin.")
+            showToast("Please fill in all fields and make sure passwords match.")
             completion(false)
             return
         }
-        
+
         guard isValidEmail(email) else {
-            showToast("Geçerli bir e-posta adresi girin.")
+            showToast("Please enter a valid email address.")
             completion(false)
             return
         }
-        
+
         guard isPasswordStrong(password) else {
-            showToast("Şifre en az 1 büyük harf, 1 rakam ve 1 özel karakter (! ya da .) içermelidir.")
+            showToast("Password must contain at least 1 uppercase letter, 1 number, and 1 special character (! or .)")
             completion(false)
             return
         }
-        
+
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         Auth.auth().createUser(withEmail: normalizedEmail, password: password) { result, error in
             DispatchQueue.main.async {
@@ -46,12 +46,12 @@ class AuthViewModel: BaseViewModel {
                             self.showToast(self.translateFirestoreError(firestoreError))
                             completion(false)
                         } else {
-                            self.isAuthenticated = true
                             completion(true)
+                            self.showToast("Registration successful! Please sign in.")
                         }
                     }
                 } else {
-                    self.showToast("Bilinmeyen bir hata oluştu.")
+                    self.showToast("An unknown error occurred.")
                     completion(false)
                 }
             }
@@ -60,18 +60,21 @@ class AuthViewModel: BaseViewModel {
 
     func login(completion: @escaping (Bool) -> Void) {
         guard !email.isEmpty, !password.isEmpty else {
-            showToast("E-posta veya şifre boş olamaz.")
+            showToast("Email or password cannot be empty.")
             completion(false)
             return
         }
-        
+
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
         AuthService.shared.login(email: normalizedEmail, password: password) { error in
-            DispatchQueue.main.async {
-                if let error = error {
+            if let error = error {
+                DispatchQueue.main.async {
                     self.showToast(error.localizedDescription)
                     completion(false)
-                } else {
+                }
+            } else {
+                DispatchQueue.main.async {
                     self.isAuthenticated = true
                     completion(true)
                 }
@@ -79,13 +82,16 @@ class AuthViewModel: BaseViewModel {
         }
     }
 
+
+    
     func resetPassword(completion: @escaping (Bool) -> Void) {
+
         guard !email.isEmpty else {
-            showToast("Lütfen önce e-posta girin.")
+            showToast("Please enter your email first.")
             completion(false)
             return
         }
-        
+
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         AuthService.shared.resetPassword(email: normalizedEmail) { error in
             DispatchQueue.main.async {
@@ -93,12 +99,26 @@ class AuthViewModel: BaseViewModel {
                     self.showToast(error.localizedDescription)
                     completion(false)
                 } else {
-                    self.showToast("Şifre sıfırlama e-postası gönderildi.")
+                    self.showToast("Password reset email sent.")
                     completion(true)
                 }
             }
         }
     }
+
+    func logout() {
+
+        do {
+            try Auth.auth().signOut()
+            self.isAuthenticated = false
+            self.email = ""
+            self.password = ""
+            self.confirmPassword = ""
+        } catch {
+            self.showToast("Logout failed: \(error.localizedDescription)")
+        }
+    }
+
 
 
     private func isPasswordStrong(_ password: String) -> Bool {
@@ -121,6 +141,12 @@ class AuthViewModel: BaseViewModel {
         let emailCheck = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
         return emailCheck.evaluate(with: email)
     }
+    
+    func clearFields() {
+        email = ""
+        password = ""
+        confirmPassword = ""
+    }
 }
 
 extension AuthViewModel {
@@ -129,31 +155,30 @@ extension AuthViewModel {
             return error.localizedDescription
         }
 
-        let isTurkish = Locale.current.language.languageCode?.identifier == "tr"
 
         switch errCode {
         case .invalidEmail:
-            return isTurkish ? "E-posta adresi geçersiz." : "The email address is badly formatted."
+            return "The email address is badly formatted."
         case .emailAlreadyInUse:
-            return isTurkish ? "Bu e-posta adresi zaten kullanımda." : "The email address is already in use."
+            return "The email address is already in use."
         case .weakPassword:
-            return isTurkish ? "Şifre çok zayıf." : "The password is too weak."
+            return "The password is too weak."
         case .wrongPassword:
-            return isTurkish ? "Şifre yanlış." : "The password is invalid."
+            return "The password is invalid."
         case .userNotFound:
-            return isTurkish ? "Bu e-posta adresine ait bir kullanıcı bulunamadı." : "No user found with this email."
+            return "No user found with this email."
         case .userDisabled:
-            return isTurkish ? "Kullanıcı hesabı devre dışı bırakılmış." : "The user account has been disabled."
+            return "The user account has been disabled."
         case .tooManyRequests:
-            return isTurkish ? "Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin." : "Too many attempts. Try again later."
+            return "Too many attempts. Try again later."
         case .operationNotAllowed:
-            return isTurkish ? "Bu işlem geçersiz." : "This operation is not allowed."
+            return "This operation is not allowed."
         case .networkError:
-            return isTurkish ? "Ağ bağlantı hatası oluştu." : "Network error occurred."
+            return "Network error occurred."
         case .invalidCredential:
-            return isTurkish ? "Giriş bilgisi geçersiz veya süresi dolmuş." : "Invalid or expired login credential."
+            return "Invalid or expired login credential."
         case .requiresRecentLogin:
-            return isTurkish ? "Bu işlem için tekrar giriş yapmanız gerekiyor." : "This action requires recent login."
+            return "This action requires recent login."
         default:
             return error.localizedDescription
         }
@@ -161,34 +186,32 @@ extension AuthViewModel {
     
     func translateFirestoreError(_ error: Error) -> String {
         let nsError = error as NSError
-        let isTurkish = Locale.current.language.languageCode?.identifier == "tr"
 
         switch nsError.code {
         case 1:
-            return isTurkish ? "İşlem iptal edildi." : "The operation was cancelled."
+            return "The operation was cancelled."
         case 2:
-            return isTurkish ? "Bilinmeyen bir hata oluştu." : "An unknown error occurred."
+            return "An unknown error occurred."
         case 3:
-            return isTurkish ? "Gönderilen veriler geçersiz." : "Invalid argument sent to the server."
+            return "Invalid argument sent to the server."
         case 4:
-            return isTurkish ? "İstek zaman aşımına uğradı." : "The operation timed out."
+            return "The operation timed out."
         case 5:
-            return isTurkish ? "Belge bulunamadı." : "Document not found."
+            return "Document not found."
         case 6:
-            return isTurkish ? "Bu belge zaten mevcut." : "The document already exists."
+            return "The document already exists."
         case 7:
-            return isTurkish ? "Yetkiniz yok." : "Permission denied."
+            return "Permission denied."
         case 9:
-            return isTurkish ? "İşlem ön koşulu sağlanmadı." : "Operation rejected due to failed precondition."
+            return "Operation rejected due to failed precondition."
         case 10:
-            return isTurkish ? "İşlem iptal edildi (çakışma)." : "The operation was aborted due to a conflict."
+            return "The operation was aborted due to a conflict."
         case 13:
-            return isTurkish ? "Firestore sunucusunda dahili bir hata oluştu." : "Internal server error in Firestore."
+            return "Internal server error in Firestore."
         case 14:
-            return isTurkish ? "Firestore hizmeti şu anda kullanılamıyor." : "Firestore service is currently unavailable."
+            return "Firestore service is currently unavailable."
         case 16:
-            return isTurkish ? "Lütfen giriş yapın." : "Authentication required."
-
+            return "Authentication required."
         default:
             return error.localizedDescription
         }

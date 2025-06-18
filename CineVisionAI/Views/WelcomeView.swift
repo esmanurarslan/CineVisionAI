@@ -2,6 +2,8 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var rootViewManager: RootViewManager
     var body: some View {
         ZStack {
             // Arka planı gradient yapalım ki Sign In sayfasıyla uyumlu olsun
@@ -15,7 +17,8 @@ struct WelcomeView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-
+            
+            
             // Beyaz çizgili köşe çerçevesi
             CornerOverlay()
                 .stroke(Color.white, lineWidth: 8)
@@ -64,7 +67,21 @@ struct WelcomeView: View {
             }
             .padding()
         }
-        .navigationBarHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    authVM.logout()
+                    rootViewManager.resetToRoot()
+                }) {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(Color(.white))
+                        .shadow(color: Color("myYellow").opacity(1), radius: 8)
+
+                }
+            }
+        }
+        .navigationBarBackButtonHidden(true)
     }
 }
 

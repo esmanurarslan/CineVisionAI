@@ -18,8 +18,8 @@ The primary purpose of this repository is to serve as a portfolio piece, demonst
 ## ⚙️ System Architecture
 
 The overall workflow of the system is illustrated in the diagram below.
-Architecture](path/to/your/architecture_diagram.png)
-> **Note:** Please update the `path/to/your/architecture_diagram.png` with the actual path to the diagram image in your repository (e.g., `docs/system_architecture.png`).
+<img width="3919" height="2288" alt="BitirmeDia" src="https://github.com/user-attachments/assets/356f6947-902c-4dc9-a2b3-bfebb7db0ab0" />
+
 
 ### Architectural Workflow
 

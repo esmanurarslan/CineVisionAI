@@ -53,6 +53,6 @@ This project is distributed under the MIT License. See the `LICENSE` file for mo
 
 *   The **Microsoft Florence-2** team for their powerful vision foundation model.
 *   The open-source community for the libraries and tools that made this project possible.
-*   The providers of the dataset(s) used for model training.
+*   TMDB dataset(s) used for model training.
 
 ![Proje Teklİfİ Sunumu](https://github.com/user-attachments/assets/1b7b3963-ba25-48c1-8b08-967c251a5781)
